@@ -12,6 +12,16 @@ import (
 	"time"
 )
 
+type ValidationStrictness int
+
+const (
+        StrictValidation ValidationStrictness = iota
+	LenientValidation
+	SkipInvalid
+)
+
+var InputValidationStrictness ValidationStrictness = StrictValidation
+
 func dropCR(data []byte) []byte {
 	if len(data) > 0 && data[len(data)-1] == '\r' {
 		return data[0 : len(data)-1]
@@ -86,9 +96,20 @@ func parseTime(input string) (time.Duration, error) {
 
 // Parse a bounding rectangle definition
 // (X1:left X2:right Y1:top Y2:bottom)
-func parseRect(input string) (Rectangle, error) {
+func parseRect(input string) (result Rectangle, errResult error) {
 	regex := regexp.MustCompile(`X1:(\d+) X2:(\d+) Y1:(\d+) Y2:(\d+)`)
 	matches := regex.FindStringSubmatch(input)
+
+	// If validation is set to lenient, set this optional
+	// element be ignored if the format is invalid
+	if InputValidationStrictness == LenientValidation {
+		defer func() {
+			if errResult != nil {
+				result = Rectangle{0,0,0,0}
+				errResult = nil
+			}
+		}()
+	}
 
 	if len(matches) < 4 {
 		return Rectangle{0, 0, 0, 0}, errors.New("Invalid bounding format")
@@ -117,7 +138,7 @@ func parseRect(input string) (Rectangle, error) {
 // Advances the SubtitleScanner-state, reading a new
 // Subtitle-object. Returns true if an object was read
 // or false if an error ocurred
-func (s *SubtitleScanner) Scan() bool {
+func (s *SubtitleScanner) Scan() (wasRead bool) {
 	if s.scanner.Scan() {
 		var (
 			nextnum           int
@@ -126,6 +147,21 @@ func (s *SubtitleScanner) Scan() bool {
 			subtitletext      string
 			subtitleRectangle Rectangle
 		)
+
+		// If we are reckless, ignore invalid Subtitles and just
+		// find the next one
+		if InputValidationStrictness == SkipInvalid {
+			defer func() {
+				s.err = nil
+				if !wasRead {
+					wasRead = s.Scan()
+					// If we dont' return true here, then
+					// the underlying scanner returned false.
+					// This means that we either had a read error
+					// or the reader is empty
+				}
+			}()
+		}
 
 		str := strings.Split(s.scanner.Text(), "\n")
 
