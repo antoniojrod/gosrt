@@ -18,6 +18,8 @@ func dropCR(data []byte) []byte {
 	return data
 }
 
+// A bufio.Scanner-function to read a string until there is a double-newline (one empty line).
+// Supports reading both LF and CRLF
 func scanDoubleNewline(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	if atEOF && len(data) == 0 {
 		return 0, nil, nil
@@ -37,18 +39,22 @@ func scanDoubleNewline(data []byte, atEOF bool) (advance int, token []byte, err 
 	return 0, nil, nil
 }
 
+// A struct containing the state for scanning
+// a .srt-file
 type SubtitleScanner struct {
 	scanner *bufio.Scanner
 	nextSub Subtitle
 	err     error
 }
 
+// Creates a new SubtitleScanner from the given io.Reader.
 func NewScanner(r io.Reader) SubtitleScanner {
 	s := bufio.NewScanner(r)
 	s.Split(scanDoubleNewline)
 	return SubtitleScanner{s, Subtitle{}, nil}
 }
 
+// Parse a time formatted as hours:minutes:seconds,milliseconds, strictly formatted as 00:00:00,000
 func parseTime(input string) (time.Duration, error) {
 	regex := regexp.MustCompile(`(\d{2}):(\d{2}):(\d{2}),(\d{3})`)
 	matches := regex.FindStringSubmatch(input)
@@ -65,6 +71,9 @@ func parseTime(input string) (time.Duration, error) {
 	return time.Duration(time.Duration(hour)*time.Hour + time.Duration(minute)*time.Minute + time.Duration(second)*time.Second + time.Duration(millisecond)*time.Millisecond), nil
 }
 
+// Advances the SubtitleScanner-state, reading a new
+// Subtitle-object. Returns true if an object was read
+// or false if an error ocurred
 func (s *SubtitleScanner) Scan() bool {
 	if s.scanner.Scan() {
 		var (
@@ -121,6 +130,8 @@ func (s *SubtitleScanner) Scan() bool {
 	}
 }
 
+// Gets the error of the SubtitleScanner.
+// Returns nil if the last error was EOF
 func (s *SubtitleScanner) Err() error {
 	if s.err != nil {
 		return s.err;
@@ -128,6 +139,7 @@ func (s *SubtitleScanner) Err() error {
 	return s.scanner.Err()
 }
 
+// Get the last read subtitle-object
 func (s *SubtitleScanner) Subtitle() Subtitle {
 	return s.nextSub
 }

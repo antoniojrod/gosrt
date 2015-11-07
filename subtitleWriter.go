@@ -7,6 +7,7 @@ import (
 	"math"
 )
 
+// Writes a duration formatted as hours:minues:seconds,milliseconds
 func writeTime(w io.Writer, dur time.Duration) (nbytes int, err error) {
 	hoursToPrint := int(math.Floor(dur.Hours()))
 	minutesToPrint := int(math.Floor(dur.Minutes() - (time.Duration(hoursToPrint)*time.Hour).Minutes()))
@@ -17,7 +18,9 @@ func writeTime(w io.Writer, dur time.Duration) (nbytes int, err error) {
 	return
 }
 
-func (s Subtitle)WriteTo(writer io.Writer) (nbytes int, err error) {
+// Writes a Subtitle-object to the given writer in srt-format.
+// No validation of the Subtitle object is performed
+func (s *Subtitle)WriteTo(writer io.Writer) (nbytes int, err error) {
 	var wlen int
 
 	wlen, err = fmt.Fprintf(writer, "%v\n", s.Number)

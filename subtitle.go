@@ -2,11 +2,12 @@ package srt
 
 import "time"
 
+// Contains the subtitle data for a .srt file
 type Subtitle struct {
-	Number   int
-	Start    time.Duration
-	End      time.Duration
-	Text     string
+	Number   int             // A sequential number for this subtitle
+	Start    time.Duration   // The duration since the start of the file when the subtitle should be shown
+	End      time.Duration   // The duration since the start of the file when the subtitle should be hidden
+	Text     string          // The contents of the subtitle
 }
 
 /*
