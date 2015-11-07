@@ -49,28 +49,28 @@ func NewScanner(r io.Reader) SubtitleScanner {
 	return SubtitleScanner{s, Subtitle{}, nil}
 }
 
-func parseTime(input string) (time.Time, error) {
+func parseTime(input string) (time.Duration, error) {
 	regex := regexp.MustCompile(`(\d{2}):(\d{2}):(\d{2}),(\d{3})`)
 	matches := regex.FindStringSubmatch(input)
 
 	hour, err := strconv.Atoi(matches[1])
-	if (err != nil) { return time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC), err }
+	if (err != nil) { return time.Duration(0), err }
 	minute, err := strconv.Atoi(matches[2])
-	if (err != nil) { return time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC), err }
+	if (err != nil) { return time.Duration(0), err }
 	second, err := strconv.Atoi(matches[3])
-	if (err != nil) { return time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC), err }
+	if (err != nil) { return time.Duration(0), err }
 	millisecond, err := strconv.Atoi(matches[4])
-	if (err != nil) { return time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC), err }
+	if (err != nil) { return time.Duration(0), err }
 
-	return time.Date(1,1,1,hour,minute,second,millisecond * 1000000, time.Local), nil
+	return time.Duration(time.Duration(hour)*time.Hour + time.Duration(minute)*time.Minute + time.Duration(second)*time.Second + time.Duration(millisecond)*time.Millisecond), nil
 }
 
 func (s *SubtitleScanner) Scan() bool {
 	if s.scanner.Scan() {
 		var (
 			nextnum int
-			start time.Time
-			duration time.Duration
+			start time.Duration
+			end time.Duration
 			subtitletext string
 		)
 
@@ -100,7 +100,7 @@ func (s *SubtitleScanner) Scan() bool {
 						return false
 					}
 					start = startTime
-					duration = endTime.Sub(startTime)
+					end = endTime
 				} else {
 					s.err = fmt.Errorf("srt: Invalid timestamp on row: %s", text)
 					return false
@@ -113,7 +113,7 @@ func (s *SubtitleScanner) Scan() bool {
 			}
 		}
 
-		s.nextSub = Subtitle{nextnum, start, duration, subtitletext}
+		s.nextSub = Subtitle{nextnum, start, end, subtitletext}
 
 		return true;
 	} else {

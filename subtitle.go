@@ -4,8 +4,8 @@ import "time"
 
 type Subtitle struct {
 	Number   int
-	Start    time.Time
-	Duration time.Duration
+	Start    time.Duration
+	End      time.Duration
 	Text     string
 }
 
