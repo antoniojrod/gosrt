@@ -1,4 +1,4 @@
-package srt
+package gosrt
 
 import (
 	"bufio"
