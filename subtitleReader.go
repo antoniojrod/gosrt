@@ -71,6 +71,24 @@ func parseTime(input string) (time.Duration, error) {
 	return time.Duration(time.Duration(hour)*time.Hour + time.Duration(minute)*time.Minute + time.Duration(second)*time.Second + time.Duration(millisecond)*time.Millisecond), nil
 }
 
+// Parse a bounding rectangle definition
+// (X1:left X2:right Y1:top Y2:bottom)
+func parseRect(input string) (Rectangle, error) {
+	regex := regexp.MustCompile(`X1:(\d+) X2:(\d+) Y1:(\d+) Y2:(\d+)`)
+	matches := regex.FindStringSubmatch(input)
+
+	left, err := strconv.Atoi(matches[1])
+	if (err != nil) { return Rectangle{0,0,0,0}, err }
+	right, err := strconv.Atoi(matches[2])
+	if (err != nil) { return Rectangle{0,0,0,0}, err }
+	top, err := strconv.Atoi(matches[3])
+	if (err != nil) { return Rectangle{0,0,0,0}, err }
+	bottom, err := strconv.Atoi(matches[4])
+	if (err != nil) { return Rectangle{0,0,0,0}, err }
+
+	return Rectangle{left, right, top, bottom}, nil
+}
+
 // Advances the SubtitleScanner-state, reading a new
 // Subtitle-object. Returns true if an object was read
 // or false if an error ocurred
@@ -81,6 +99,7 @@ func (s *SubtitleScanner) Scan() bool {
 			start time.Duration
 			end time.Duration
 			subtitletext string
+			subtitleRectangle Rectangle
 		)
 
 		str := strings.Split(s.scanner.Text(), "\n")
@@ -110,6 +129,18 @@ func (s *SubtitleScanner) Scan() bool {
 					}
 					start = startTime
 					end = endTime
+
+					if len(elements) >= 7 {
+						rect, err := parseRect(strings.Join(elements[3:7], " "))
+						if err != nil {
+							s.err = err
+							return false
+						}
+
+						subtitleRectangle = rect
+					} else {
+						subtitleRectangle = Rectangle{0,0,0,0}
+					}
 				} else {
 					s.err = fmt.Errorf("srt: Invalid timestamp on row: %s", text)
 					return false
@@ -122,7 +153,7 @@ func (s *SubtitleScanner) Scan() bool {
 			}
 		}
 
-		s.nextSub = Subtitle{nextnum, start, end, subtitletext}
+		s.nextSub = Subtitle{nextnum, start, end, subtitletext, subtitleRectangle}
 
 		return true;
 	} else {

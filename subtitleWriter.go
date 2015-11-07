@@ -18,6 +18,12 @@ func writeTime(w io.Writer, dur time.Duration) (nbytes int, err error) {
 	return
 }
 
+// Writes a bounding rectangle X1:left X2:right Y1:top Y2:bottom
+func writeRect(w io.Writer, r Rectangle) (nbytes int, err error) {
+	nbytes, err = fmt.Fprintf(w, "X1:%d X2:%d Y1:%d Y2:%d", r.Left, r.Right, r.Top, r.Bottom)
+	return
+}
+
 // Writes a Subtitle-object to the given writer in srt-format.
 // No validation of the Subtitle object is performed
 func (s *Subtitle)WriteTo(writer io.Writer) (nbytes int, err error) {
@@ -45,6 +51,20 @@ func (s *Subtitle)WriteTo(writer io.Writer) (nbytes int, err error) {
 	nbytes += wlen
 	if err != nil {
 		return nbytes, err
+	}
+
+	if !s.Bounds.IsEmpty() {
+		wlen, err = io.WriteString(writer, " ")
+		nbytes += wlen
+		if err != nil {
+			return nbytes, err
+		}
+
+		wlen, err = writeRect(writer, s.Bounds)
+		nbytes += wlen
+		if err != nil {
+			return nbytes, err
+		}
 	}
 
 	wlen, err = io.WriteString(writer, "\n")
