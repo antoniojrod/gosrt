@@ -59,10 +59,10 @@ type SubtitleScanner struct {
 }
 
 // Creates a new SubtitleScanner from the given io.Reader.
-func NewScanner(r io.Reader) SubtitleScanner {
+func NewScanner(r io.Reader) *SubtitleScanner {
 	s := bufio.NewScanner(r)
 	s.Split(scanDoubleNewline)
-	return SubtitleScanner{s, Subtitle{}, nil}
+	return &SubtitleScanner{s, Subtitle{}, nil}
 }
 
 // Parse a time formatted as hours:minutes:seconds,milliseconds, strictly formatted as 00:00:00,000
