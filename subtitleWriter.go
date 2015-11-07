@@ -1,18 +1,18 @@
 package srt
 
 import (
-	"io"
-	"time"
 	"fmt"
+	"io"
 	"math"
+	"time"
 )
 
 // Writes a duration formatted as hours:minues:seconds,milliseconds
 func writeTime(w io.Writer, dur time.Duration) (nbytes int, err error) {
 	hoursToPrint := int(math.Floor(dur.Hours()))
-	minutesToPrint := int(math.Floor(dur.Minutes() - (time.Duration(hoursToPrint)*time.Hour).Minutes()))
+	minutesToPrint := int(math.Floor(dur.Minutes() - (time.Duration(hoursToPrint) * time.Hour).Minutes()))
 	secondsToPrint := int(math.Floor(dur.Seconds() - (time.Duration(hoursToPrint)*time.Hour + time.Duration(minutesToPrint)*time.Minute).Seconds()))
-	millisecondsToPrint := int(math.Floor(float64(dur/time.Millisecond - (time.Duration(hoursToPrint)*time.Hour + time.Duration(minutesToPrint)*time.Minute + time.Duration(secondsToPrint)*time.Second)/time.Millisecond)))
+	millisecondsToPrint := int(math.Floor(float64(dur/time.Millisecond - (time.Duration(hoursToPrint)*time.Hour+time.Duration(minutesToPrint)*time.Minute+time.Duration(secondsToPrint)*time.Second)/time.Millisecond)))
 
 	nbytes, err = fmt.Fprintf(w, "%02d:%02d:%02d,%03d", hoursToPrint, minutesToPrint, secondsToPrint, millisecondsToPrint)
 	return
@@ -26,7 +26,7 @@ func writeRect(w io.Writer, r Rectangle) (nbytes int, err error) {
 
 // Writes a Subtitle-object to the given writer in srt-format.
 // No validation of the Subtitle object is performed
-func (s *Subtitle)WriteTo(writer io.Writer) (nbytes int, err error) {
+func (s *Subtitle) WriteTo(writer io.Writer) (nbytes int, err error) {
 	var wlen int
 
 	wlen, err = fmt.Fprintf(writer, "%v\n", s.Number)
@@ -87,4 +87,3 @@ func (s *Subtitle)WriteTo(writer io.Writer) (nbytes int, err error) {
 
 	return nbytes, nil
 }
-

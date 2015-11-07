@@ -4,11 +4,11 @@ import "time"
 
 // Contains the subtitle data for a .srt file
 type Subtitle struct {
-	Number   int             // A sequential number for this subtitle
-	Start    time.Duration   // The duration since the start of the file when the subtitle should be shown
-	End      time.Duration   // The duration since the start of the file when the subtitle should be hidden
-	Text     string          // The contents of the subtitle
-	Bounds   Rectangle       // Optional bounding box of the subtitles. Use .IsEmpty() to determine if it's set
+	Number int           // A sequential number for this subtitle
+	Start  time.Duration // The duration since the start of the file when the subtitle should be shown
+	End    time.Duration // The duration since the start of the file when the subtitle should be hidden
+	Text   string        // The contents of the subtitle
+	Bounds Rectangle     // Optional bounding box of the subtitles. Use .IsEmpty() to determine if it's set
 }
 
 /*
@@ -44,9 +44,9 @@ or
 */
 
 type Rectangle struct {
-	Left int
-	Right int
-	Top int
+	Left   int
+	Right  int
+	Top    int
 	Bottom int
 }
 

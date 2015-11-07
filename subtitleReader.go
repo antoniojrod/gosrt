@@ -1,14 +1,15 @@
 package srt
 
 import (
-	"fmt"
 	"bufio"
 	"bytes"
+	"errors"
+	"fmt"
 	"io"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
-	"regexp"
 )
 
 func dropCR(data []byte) []byte {
@@ -59,14 +60,26 @@ func parseTime(input string) (time.Duration, error) {
 	regex := regexp.MustCompile(`(\d{2}):(\d{2}):(\d{2}),(\d{3})`)
 	matches := regex.FindStringSubmatch(input)
 
+	if len(matches) < 4 {
+		return time.Duration(0), errors.New("Invalid time format")
+	}
+
 	hour, err := strconv.Atoi(matches[1])
-	if (err != nil) { return time.Duration(0), err }
+	if err != nil {
+		return time.Duration(0), err
+	}
 	minute, err := strconv.Atoi(matches[2])
-	if (err != nil) { return time.Duration(0), err }
+	if err != nil {
+		return time.Duration(0), err
+	}
 	second, err := strconv.Atoi(matches[3])
-	if (err != nil) { return time.Duration(0), err }
+	if err != nil {
+		return time.Duration(0), err
+	}
 	millisecond, err := strconv.Atoi(matches[4])
-	if (err != nil) { return time.Duration(0), err }
+	if err != nil {
+		return time.Duration(0), err
+	}
 
 	return time.Duration(time.Duration(hour)*time.Hour + time.Duration(minute)*time.Minute + time.Duration(second)*time.Second + time.Duration(millisecond)*time.Millisecond), nil
 }
@@ -77,14 +90,26 @@ func parseRect(input string) (Rectangle, error) {
 	regex := regexp.MustCompile(`X1:(\d+) X2:(\d+) Y1:(\d+) Y2:(\d+)`)
 	matches := regex.FindStringSubmatch(input)
 
+	if len(matches) < 4 {
+		return Rectangle{0, 0, 0, 0}, errors.New("Invalid bounding format")
+	}
+
 	left, err := strconv.Atoi(matches[1])
-	if (err != nil) { return Rectangle{0,0,0,0}, err }
+	if err != nil {
+		return Rectangle{0, 0, 0, 0}, err
+	}
 	right, err := strconv.Atoi(matches[2])
-	if (err != nil) { return Rectangle{0,0,0,0}, err }
+	if err != nil {
+		return Rectangle{0, 0, 0, 0}, err
+	}
 	top, err := strconv.Atoi(matches[3])
-	if (err != nil) { return Rectangle{0,0,0,0}, err }
+	if err != nil {
+		return Rectangle{0, 0, 0, 0}, err
+	}
 	bottom, err := strconv.Atoi(matches[4])
-	if (err != nil) { return Rectangle{0,0,0,0}, err }
+	if err != nil {
+		return Rectangle{0, 0, 0, 0}, err
+	}
 
 	return Rectangle{left, right, top, bottom}, nil
 }
@@ -95,10 +120,10 @@ func parseRect(input string) (Rectangle, error) {
 func (s *SubtitleScanner) Scan() bool {
 	if s.scanner.Scan() {
 		var (
-			nextnum int
-			start time.Duration
-			end time.Duration
-			subtitletext string
+			nextnum           int
+			start             time.Duration
+			end               time.Duration
+			subtitletext      string
 			subtitleRectangle Rectangle
 		)
 
@@ -139,7 +164,7 @@ func (s *SubtitleScanner) Scan() bool {
 
 						subtitleRectangle = rect
 					} else {
-						subtitleRectangle = Rectangle{0,0,0,0}
+						subtitleRectangle = Rectangle{0, 0, 0, 0}
 					}
 				} else {
 					s.err = fmt.Errorf("srt: Invalid timestamp on row: %s", text)
@@ -155,7 +180,7 @@ func (s *SubtitleScanner) Scan() bool {
 
 		s.nextSub = Subtitle{nextnum, start, end, subtitletext, subtitleRectangle}
 
-		return true;
+		return true
 	} else {
 		return false
 	}
@@ -165,7 +190,7 @@ func (s *SubtitleScanner) Scan() bool {
 // Returns nil if the last error was EOF
 func (s *SubtitleScanner) Err() error {
 	if s.err != nil {
-		return s.err;
+		return s.err
 	}
 	return s.scanner.Err()
 }
