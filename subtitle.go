@@ -1,8 +1,9 @@
+// Package gosrt provides simple access to SubRipText subtitle files (.srt)
 package gosrt
 
 import "time"
 
-// Contains the subtitle data for a .srt file
+// Subtitle contains the subtitle data for a .srt file
 type Subtitle struct {
 	Number int           // A sequential number for this subtitle
 	Start  time.Duration // The duration since the start of the file when the subtitle should be shown
@@ -43,6 +44,7 @@ or
 
 */
 
+// Rectangle represents a on-screen axis-aligned bounding box
 type Rectangle struct {
 	Left   int
 	Right  int
@@ -50,18 +52,24 @@ type Rectangle struct {
 	Bottom int
 }
 
+// Width calculates and returns the width of a Rectangle
 func (r *Rectangle) Width() int {
 	return r.Right - r.Left
 }
 
+
+// Height calculates and returns the height of a Rectangle
 func (r *Rectangle) Height() int {
 	return r.Bottom - r.Top
 }
 
+// FromSizes creates a new rectangle with its top-left corner at (x, y)
+// and with the specified with and height
 func FromSizes(x, y, wid, hgt int) Rectangle {
 	return Rectangle{x, y, x + wid, y + hgt}
 }
 
+// IsEmpty checks if the Rectangle has the nil value
 func (r *Rectangle) IsEmpty() bool {
 	return r.Left == r.Right && r.Top == r.Bottom
 }

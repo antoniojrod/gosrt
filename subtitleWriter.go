@@ -24,7 +24,7 @@ func writeRect(w io.Writer, r Rectangle) (nbytes int, err error) {
 	return
 }
 
-// Writes a Subtitle-object to the given writer in srt-format.
+// WriteTo writes a Subtitle-object to the given writer in srt-format.
 // No validation of the Subtitle object is performed
 func (s *Subtitle) WriteTo(writer io.Writer) (nbytes int, err error) {
 	var wlen int

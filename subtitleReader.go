@@ -12,15 +12,22 @@ import (
 	"time"
 )
 
+// ValidationStrictness - The strictness of the validation performed
 type ValidationStrictness int
 
 const (
+	// StrictValidation means that all subtitles have to be fault-free
         StrictValidation ValidationStrictness = iota
+	// LenientValidation allows optional srt-elements to be
+	// skipped if invalid
+	// (and treated as if they were not specified)
 	LenientValidation
+	// SkipInvalid silently skips invalid subtitles
 	SkipInvalid
 )
 
-var InputValidationStrictness ValidationStrictness = StrictValidation
+// InputValidationStrictness sets the global level of input validation
+var InputValidationStrictness = StrictValidation
 
 func dropCR(data []byte) []byte {
 	if len(data) > 0 && data[len(data)-1] == '\r' {
@@ -50,7 +57,7 @@ func scanDoubleNewline(data []byte, atEOF bool) (advance int, token []byte, err 
 	return 0, nil, nil
 }
 
-// A struct containing the state for scanning
+// SubtitleScanner contains the state for scanning
 // a .srt-file
 type SubtitleScanner struct {
 	scanner *bufio.Scanner
@@ -58,7 +65,7 @@ type SubtitleScanner struct {
 	err     error
 }
 
-// Creates a new SubtitleScanner from the given io.Reader.
+// NewScanner creates a new SubtitleScanner from the given io.Reader.
 func NewScanner(r io.Reader) *SubtitleScanner {
 	s := bufio.NewScanner(r)
 	s.Split(scanDoubleNewline)
@@ -135,7 +142,7 @@ func parseRect(input string) (result Rectangle, errResult error) {
 	return Rectangle{left, right, top, bottom}, nil
 }
 
-// Advances the SubtitleScanner-state, reading a new
+// Scan advances the SubtitleScanner-state, reading a new
 // Subtitle-object. Returns true if an object was read
 // or false if an error ocurred
 func (s *SubtitleScanner) Scan() (wasRead bool) {
@@ -217,12 +224,12 @@ func (s *SubtitleScanner) Scan() (wasRead bool) {
 		s.nextSub = Subtitle{nextnum, start, end, subtitletext, subtitleRectangle}
 
 		return true
-	} else {
-		return false
 	}
+
+	return false
 }
 
-// Gets the error of the SubtitleScanner.
+// Err gets the error of the SubtitleScanner.
 // Returns nil if the last error was EOF
 func (s *SubtitleScanner) Err() error {
 	if s.err != nil {
@@ -231,7 +238,7 @@ func (s *SubtitleScanner) Err() error {
 	return s.scanner.Err()
 }
 
-// Get the last read subtitle-object
+// Subtitle returns the last read subtitle-object
 func (s *SubtitleScanner) Subtitle() Subtitle {
 	return s.nextSub
 }
