@@ -74,7 +74,7 @@ func NewScanner(r io.Reader) *SubtitleScanner {
 
 // Parse a time formatted as hours:minutes:seconds,milliseconds, strictly formatted as 00:00:00,000
 func parseTime(input string) (time.Duration, error) {
-	regex := regexp.MustCompile(`(\d{2}):(\d{2}):(\d{2}),(\d{3})`)
+	regex := regexp.MustCompile(`(\d{2}):(\d{2}):(\d{2}),(\d{2,3})`)
 	matches := regex.FindStringSubmatch(input)
 
 	if len(matches) < 4 {
